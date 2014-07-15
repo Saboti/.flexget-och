@@ -26,31 +26,14 @@ templates:
       reject_excluding:
         - S\d+E\d+: {from: title}
         - s\d+e\d+: {from: title}
+    plugin_priority:
+      trakt_lookup: 112
+    metainfo_series: yes
     thetvdb_lookup: yes
+    trakt_lookup: yes
     serienjunkies:
       language: de
       hoster: ul
-    configure_series:
-      from:
-        trakt_list:
-          username: '{{ secrets.trakt.usr }}'
-          password: '{{ secrets.trakt.pwd }}'
-          api_key: '{{ secrets.trakt.api }}'
-          custom: Serien
-          strip_dates: yes
-      settings:
-        #quality: "<720p webrip+ xvid+"
-        quality: "<720p hdtv+"
-        tracking: no
-        identified_by: ep
-    trakt_add:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      list: library
-    pushover:
-      userkey: '{{ secrets.pushover.userkey }}'
-      apikey: '{{ secrets.pushover.apikey }}'
 
   filme-global:
     regexp:
@@ -74,9 +57,6 @@ templates:
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
       list: Filme
-    pushover:
-      userkey: '{{ secrets.pushover.userkey }}'
-      apikey: '{{ secrets.pushover.apikey }}'
 
 tasks:
   trakt_watchlist:
@@ -91,31 +71,76 @@ tasks:
     seen: local
     queue_movies: yes
 
-  trakt_set_series_begin:
-    template: no_global
+  trakt_set_Series:
     priority: 2
-    trakt_emit:
+    template: 
+      - no_global
+      - serien-global
+    plugin_priority:
+      set: -254
+      if: -255
+    inputs:
+      - trakt_emit:
+          username: '{{ secrets.trakt.usr }}'
+          password: '{{ secrets.trakt.pwd }}'
+          api_key: '{{ secrets.trakt.api }}'
+          position: next
+          context: collected
+          list: Serien
+    # This will set the trakt_rating field on entries - see https://github.com/tarzasai/.flexget/tree/master/plugins
+    trakt_ratings_lookup:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
-      context: collected
-      list: Serien
+    # These are the default values.
+    set:
+      quality: <720p hdtv
+      specials: no
+      tracking: no
+    # overrides:
+    if:
+      # I just need to rate a show on trakt.tv to switch between hi-res and default quality.
+      - trakt_rating == "love":
+          set:
+            quality: 720p hdtv
     accept_all: yes
+    # Creates the settings file for the series plugin - see https://github.com/tarzasai/.flexget/tree/master/plugins
+    create_series_config:
+      set_fields:
+        - begin
+        - quality
+        - specials
+        - tracking
+      filename: '/root/.flexget/series.yml'
     set_series_begin: yes
 
   filme:
     template: filme-global
-    priority: 2
+    priority: 3
     movie_queue: yes
     inputs:
       #- rss: http://cinetopia.ws/feed/
       - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=f0babccee69c68416394e07050686981&_render=rss # HDAREA 720p
       - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=314566c01e38cdcf1517cc7f3adcdd65&_render=rss # ALL Movies 720p
       - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=bb1e5656ec4f4235c56903f14c9ba32e&_render=rss # HDAREA xrel retail 720p
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: library
+    trakt_remove:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: Filme
+    pushover:
+      userkey: '{{ secrets.pushover.userkey }}'
+      apikey: '{{ secrets.pushover.apikey }}'
 
   serien:
     template: serien-global
-    priority: 3
+    priority: 4
+    include: '/root/.flexget/series.yml'
     inputs:
       #- rss: http://cinetopia.ws/feed/
       - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=a3bbd36ffce35009c75ebd974083eb77&_render=rss # Serienjunkies Filtered
@@ -123,25 +148,54 @@ tasks:
       - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=1 # Serienjunkies All Page 2
       - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=2 # Serienjunkies All Page 3
       - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=3 # Serienjunkies All Page 4
-    accept_all: no
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: library
+    pushover:
+      userkey: '{{ secrets.pushover.userkey }}'
+      apikey: '{{ secrets.pushover.apikey }}'
     
   filmsuche:
-    priority: 4
+    priority: 5
     template: filme-global
     discover:
       what:
         - emit_movie_queue: yes
       from:
         - search_rss: http://pipes.yahoo.com/pipes/pipe.run?_id=c78ffc88331f35b954f5499f39ce29e5&_render=rss&search={{search_term}} # HDAREA search
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: library
+    trakt_remove:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: Filme
+    pushover:
+      userkey: '{{ secrets.pushover.userkey }}'
+      apikey: '{{ secrets.pushover.apikey }}'
 
   seriensuche:
-    priority: 5
+    priority: 6
     template: serien-global
+    include: '/root/.flexget/series.yml'
     discover:
       what:
         - emit_series: yes
       from:
         - search_rss: http://pipes.yahoo.com/pipes/pipe.run?SeasonEpisode={{search_term}}&Serie={{search_term}}&_id=9ac44b79ddd8b30ae42a1a9e31cb6e03&_render=rss
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: library
+    pushover:
+      userkey: '{{ secrets.pushover.userkey }}'
+      apikey: '{{ secrets.pushover.apikey }}'
 
 schedules:
   - tasks: '*'
