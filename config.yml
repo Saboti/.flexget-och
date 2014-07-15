@@ -43,20 +43,12 @@ templates:
         - \b(S\d{1,2})\b: {from: title}
         - \b(S\d+E\d+)\b: {from: title}
     quality:
-      - "<=720p hdtv+"
+      - "<=720p"
     imdb_lookup: yes
-    seen_movies: loose
+    tmdb_lookup: yes
+    rottentomatoes_lookup: yes
+    #seen_movies: loose
     proper_movies: yes
-    trakt_add:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      list: library
-    trakt_remove:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      list: Filme
 
 tasks:
   trakt_watchlist:
@@ -69,7 +61,8 @@ tasks:
       custom: Filme
     accept_all: yes
     seen: local
-    queue_movies: yes
+    queue_movies:
+      quality: any
 
   trakt_set_Series:
     priority: 2
@@ -94,7 +87,7 @@ tasks:
       api_key: '{{ secrets.trakt.api }}'
     # These are the default values.
     set:
-      quality: <720p hdtv
+      quality: "<720p webrip+ xvid+"
       specials: no
       tracking: no
     # overrides:
@@ -102,7 +95,8 @@ tasks:
       # I just need to rate a show on trakt.tv to switch between hi-res and default quality.
       - trakt_rating == "love":
           set:
-            quality: 720p hdtv
+            #quality: 720p hdtv
+            quality: "720p webrip+ xvid+"
     accept_all: yes
     # Creates the settings file for the series plugin - see https://github.com/tarzasai/.flexget/tree/master/plugins
     create_series_config:
