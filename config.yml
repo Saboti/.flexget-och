@@ -17,15 +17,10 @@ templates:
         - \b(duo|tri|quadri|tetra|penta)logy\b: {from: title} # Filtert mehrteilige Serien, immer nur eine Episode
         - \b3-?D\b: {from: title} # Hab kein 3D TV
         - \btrailer\b: {from: title} # Filtert Trailer die evtl. wie Filme benannt sind
-        - \bsubbed\b: {from: title} # Filtert Subbed
         - \b(COMPLETE)\b: {from: title}
     verify_ssl_certificates: no
 
   serien-global:
-    regexp:
-      reject_excluding:
-        - S\d+E\d+: {from: title}
-        - s\d+e\d+: {from: title}
     plugin_priority:
       trakt_lookup: 112
     metainfo_series: yes
@@ -36,12 +31,6 @@ templates:
       hoster: ul
 
   filme-global:
-    regexp:
-      reject:
-        - S\d+E\d+: {from: title}
-        - s\d+e\d+: {from: title}
-        - \b(S\d{1,2})\b: {from: title}
-        - \b(S\d+E\d+)\b: {from: title}
     quality:
       - "<=720p"
     imdb_lookup: yes
@@ -51,6 +40,7 @@ templates:
     proper_movies: yes
 
 tasks:
+  # Update our Movieque from Trakt.tv Custom List
   trakt_watchlist:
     template: no_global
     priority: 1
@@ -64,6 +54,7 @@ tasks:
     queue_movies:
       quality: any
 
+  # Get all Series from custom Trakt.tv List and output it with setting to series.yml also set the Series beginning
   trakt_set_Series:
     priority: 2
     template: 
@@ -108,9 +99,14 @@ tasks:
       filename: '/root/.flexget/series.yml'
     set_series_begin: yes
 
+  # Look up Custom Yahoo Pipes RSS Feed for Movies in the Moviequeue, add to Takt.tv Library and delete the Movie from the Custom List
   filme:
     template: filme-global
     priority: 3
+    regexp:
+      reject:
+        - S\d+E\d+: {from: title}
+        - s\d+e\d+: {from: title}
     movie_queue: yes
     inputs:
       #- rss: http://cinetopia.ws/feed/
@@ -130,18 +126,28 @@ tasks:
     pushover:
       userkey: '{{ secrets.pushover.userkey }}'
       apikey: '{{ secrets.pushover.apikey }}'
-
+  
+  # Look up Custom Yahoo Pipes RSS Feed for Series in the created series.yml file, add them to Trakt.tv Library
   serien:
     template: serien-global
     priority: 4
+    regexp:
+      reject_excluding:
+        - S\d+E\d+: {from: title}
+        - s\d+e\d+: {from: title}
+      reject:
+        - \bsubbed\b: {from: title} # Filtert Subbed
     include: '/root/.flexget/series.yml'
     inputs:
       #- rss: http://cinetopia.ws/feed/
       - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=a3bbd36ffce35009c75ebd974083eb77&_render=rss # Serienjunkies Filtered
       - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss # Serienjunkies All
-      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=1 # Serienjunkies All Page 2
-      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=2 # Serienjunkies All Page 3
-      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=3 # Serienjunkies All Page 4
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=1 # Serienjunkies All Page 1
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=2 # Serienjunkies All Page 2
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=3 # Serienjunkies All Page 3
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=4 # Serienjunkies All Page 4
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=5 # Serienjunkies All Page 5
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=6 # Serienjunkies All Page 6
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
@@ -151,6 +157,7 @@ tasks:
       userkey: '{{ secrets.pushover.userkey }}'
       apikey: '{{ secrets.pushover.apikey }}'
     
+  # Search for queued Movies on hdarea with the help of a custom yahoo pipe
   filmsuche:
     priority: 5
     template: filme-global
@@ -173,9 +180,16 @@ tasks:
       userkey: '{{ secrets.pushover.userkey }}'
       apikey: '{{ secrets.pushover.apikey }}'
 
+  # Search for the Series from series.yml file on Serienjunkies with the help of a custom yahoo pipe
   seriensuche:
     priority: 6
     template: serien-global
+    regexp:
+      reject_excluding:
+        - S\d+E\d+: {from: title}
+        - s\d+e\d+: {from: title}
+      reject:
+        - \bsubbed\b: {from: title} # Filtert Subbed
     include: '/root/.flexget/series.yml'
     discover:
       what:
@@ -190,6 +204,61 @@ tasks:
     pushover:
       userkey: '{{ secrets.pushover.userkey }}'
       apikey: '{{ secrets.pushover.apikey }}'
+  
+    # This one grabs the pilots.
+  premieres:
+    priority: 7
+    template:
+      - serien-global
+    inputs:
+      #- rss: http://cinetopia.ws/feed/
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss # Serienjunkies All
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=1 # Serienjunkies All Page 1
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=2 # Serienjunkies All Page 2
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=3 # Serienjunkies All Page 3
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=4 # Serienjunkies All Page 4
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=5 # Serienjunkies All Page 5
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=6 # Serienjunkies All Page 6
+    plugin_priority:
+      if: -252
+      # In this task it's ok to override the priority set by tvinfo.
+      manipulate: -253
+      trakt_add: -254
+    seen: local
+    require_field:
+      - tvdb_id
+      - tvdb_genres
+      - tvdb_first_air_date
+    regexp:
+      reject:
+        - animation: {from: tvdb_genres}
+        - children: {from: tvdb_genres}
+        - documentary: {from: tvdb_genres}
+        - family: {from: tvdb_genres}
+        - game show: {from: tvdb_genres}
+        - home and garden: {from: tvdb_genres}
+        - musical: {from: tvdb_genres}
+        - reality: {from: tvdb_genres}
+        - soap: {from: tvdb_genres}
+        - special interest: {from: tvdb_genres}
+        - talk show: {from: tvdb_genres}
+    series_premiere:
+      timeframe: 4 hours
+      quality: "<720p webrip+ xvid+"
+    #if:
+    #  - tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=60): reject
+    # We need to remove season and episode numbers, otherwise trakt_add plugin will handle entries as episodes.
+    manipulate:
+      - series_season:
+          remove: yes
+      - series_episode:
+          remove: yes
+    # Add the show to the temporary list on trakt.tv so we'll get subsequent episodes too (in the end if I like it I will move it in the main list).
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: Serien_temp
 
 schedules:
   - tasks: '*'
