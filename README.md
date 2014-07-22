@@ -5,6 +5,8 @@ Lose inspiriert von mehreren Personen.
 Alle Privaten Informationen (username, passwords, api keys) sind in einer seperaten yaml Datei die direkt beim Start ausgelesen wird.
 [config_secret](https://github.com/tarzasai/.flexget/blob/master/plugins/config_secrets.py) Plugin (Details [here](https://github.com/Flexget/Flexget/pull/249)).
 
+
+
 Meine Yahoo Pipes:
 
 All Movies 720p - http://pipes.yahoo.com/pipes/pipe.info?_id=314566c01e38cdcf1517cc7f3adcdd65
