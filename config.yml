@@ -3,7 +3,7 @@ secrets: secrets.yml
 templates:
   global:
     pyload:
-      api: http://localhost:8000/api
+      api: http://localhost:8008/api
       queue: no
       parse_url: yes
       multiple_hoster: yes
@@ -33,7 +33,6 @@ templates:
     imdb_lookup: yes
     tmdb_lookup: yes
     rottentomatoes_lookup: yes
-    #seen_movies: loose
     proper_movies: yes
 
 tasks:
@@ -106,8 +105,6 @@ tasks:
         - s\d+e\d+: {from: title}
     movie_queue: yes
     inputs:
-      #- rss: http://cinetopia.ws/feed/
-      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=f0babccee69c68416394e07050686981&_render=rss # HDAREA 720p
       - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=314566c01e38cdcf1517cc7f3adcdd65&_render=rss # ALL Movies 720p
       - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=bb1e5656ec4f4235c56903f14c9ba32e&_render=rss # HDAREA xrel retail 720p
     trakt_add:
@@ -136,15 +133,14 @@ tasks:
         - \bsubbed\b: {from: title} # Filtert Subbed
     include: '/home/saboti/.flexget/series.yml'
     inputs:
-      #- rss: http://cinetopia.ws/feed/
       - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=a3bbd36ffce35009c75ebd974083eb77&_render=rss # Serienjunkies Filtered
-      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss # Serienjunkies All
-      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=1 # Serienjunkies All Page 1
-      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=2 # Serienjunkies All Page 2
-      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=3 # Serienjunkies All Page 3
-      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=4 # Serienjunkies All Page 4
-      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=5 # Serienjunkies All Page 5
-      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=6 # Serienjunkies All Page 6
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss # Serienjunkies All
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=1 # Serienjunkies All Page 1
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=2 # Serienjunkies All Page 2
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=3 # Serienjunkies All Page 3
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=4 # Serienjunkies All Page 4
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=5 # Serienjunkies All Page 5
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=6 # Serienjunkies All Page 6
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
@@ -192,7 +188,7 @@ tasks:
       what:
         - emit_series: yes
       from:
-        - search_rss: http://pipes.yahoo.com/pipes/pipe.run?SeasonEpisode={{search_term}}&Serie={{search_term}}&_id=9ac44b79ddd8b30ae42a1a9e31cb6e03&_render=rss
+        - search_rss: http://pipes.yahoo.com/pipes/pipe.run?SeasonEpisode={{search_term}}&Serie={{search_term}}&_id=9ac44b79ddd8b30ae42a1a9e31cb6e03&_render=rss # Search SJ - German
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
