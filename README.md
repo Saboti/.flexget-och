@@ -16,6 +16,3 @@ HDArea xrel retail 720p - http://pipes.yahoo.com/pipes/pipe.info?_id=bb1e5656ec4
 Serienjunkies All - http://pipes.yahoo.com/pipes/pipe.info?_id=60c32e6edfa519fbaf911629c2c9e3b0
 
 Search SJ.org - German - http://pipes.yahoo.com/pipes/pipe.info?_id=9ac44b79ddd8b30ae42a1a9e31cb6e03
-
-Search SJ.org - Englisch (German Subbed) - http://pipes.yahoo.com/pipes/pipe.info?_id=78738459b34f58fb8170568f3dcb39b0
-
