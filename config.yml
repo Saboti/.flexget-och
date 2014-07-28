@@ -38,6 +38,7 @@ templates:
 tasks:
   # Update our Movieque from Trakt.tv Custom List
   trakt_watchlist:
+    disable_builtins: [seen]
     template: no_global
     priority: 1
     trakt_list:
@@ -52,6 +53,7 @@ tasks:
 
   # Get all Series from custom Trakt.tv List and output it with setting to series.yml also set the Series beginning
   trakt_set_Series:
+    disable_builtins: [seen]
     priority: 2
     template: 
       - no_global
@@ -106,7 +108,6 @@ tasks:
     movie_queue: yes
     inputs:
       - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=314566c01e38cdcf1517cc7f3adcdd65&_render=rss # ALL Movies 720p
-      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=bb1e5656ec4f4235c56903f14c9ba32e&_render=rss # HDAREA xrel retail 720p
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
@@ -201,4 +202,4 @@ tasks:
 schedules:
   - tasks: '*'
     interval:
-      minutes: 30
+      hours: 1
