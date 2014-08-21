@@ -16,3 +16,5 @@ Serienjunkies All - http://pipes.yahoo.com/pipes/pipe.info?_id=60c32e6edfa519fba
 Serienjunkies filtered - http://pipes.yahoo.com/pipes/pipe.info?_id=a3bbd36ffce35009c75ebd974083eb77
 
 Search SJ.org - http://pipes.yahoo.com/pipes/pipe.info?_id=9ac44b79ddd8b30ae42a1a9e31cb6e03
+
+HDAREA search - http://pipes.yahoo.com/pipes/pipe.info?_id=c78ffc88331f35b954f5499f39ce29e5
