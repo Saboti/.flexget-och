@@ -1,6 +1,10 @@
 #Mein [Flexget](https://github.com/Flexget/Flexget) Setup
 
 Lose inspiriert von mehreren Personen.
+Ihr braucht folgende 2 Plugins von [tarzasai](https://github.com/tarzasai/.flexget/tree/master/plugins)
+
+- create_series_config.py
+- trakt_ratings_lookup.py
 
 Alle Privaten Informationen (username, passwords, api keys) sind in einer seperaten yaml Datei die direkt beim Start ausgelesen wird.
 
