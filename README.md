@@ -13,8 +13,8 @@ All Movies 720p - http://pipes.yahoo.com/pipes/pipe.info?_id=314566c01e38cdcf151
 
 Serienjunkies All - http://pipes.yahoo.com/pipes/pipe.info?_id=60c32e6edfa519fbaf911629c2c9e3b0
 
-Serienjunkies filtered - http://pipes.yahoo.com/pipes/pipe.info?_id=a3bbd36ffce35009c75ebd974083eb77
-
-Search SJ.org - http://pipes.yahoo.com/pipes/pipe.info?_id=9ac44b79ddd8b30ae42a1a9e31cb6e03
+Search SJ.org - http://pipes.yahoo.com/pipes/pipe.info?_id=9ac44b79ddd8b30ae42a1a9e31cb6e03 (Not Working at the Moment)
 
 HDAREA search - http://pipes.yahoo.com/pipes/pipe.info?_id=c78ffc88331f35b954f5499f39ce29e5
+
+Cinetopia search - http://pipes.yahoo.com/pipes/pipe.info?_id=639b4e099488eed7174dc3b8f9da2521
