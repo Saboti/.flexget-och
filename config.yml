@@ -2,13 +2,22 @@ secrets: secrets.yml
 
 templates:
   global:
+    verify_ssl_certificates: no
     pyload:
-      api: http://localhost:8008/api
+      api: http://localhost:8000/api
       queue: no
       parse_url: yes
       multiple_hoster: yes
       username: '{{ secrets.pyload.usr }}'
       password: '{{ secrets.pyload.pwd }}'
+    email:
+      from: tobias.mundinger@gmail.com
+      to: be9877067dec4f47b5f27bd578a0ebf3@api.pushalot.com
+      smtp_host: smtp.gmail.com
+      smtp_port: 587
+      smtp_username: '{{ secrets.gmail.usr }}'
+      smtp_password: '{{ secrets.gmail.pwd }}'
+      smtp_tls: yes
     regexp:
       reject:
         - \b(duo|tri|quadri|tetra|penta)logy\b: {from: title} # Filtert mehrteilige Serien, immer nur eine Episode
@@ -29,7 +38,7 @@ templates:
 
   filme-global:
     quality:
-      - "<=720p"
+      - "<=720p webrip+"
     imdb_lookup: yes
     tmdb_lookup: yes
     rottentomatoes_lookup: yes
@@ -54,7 +63,7 @@ tasks:
   # Get all Series from custom Trakt.tv List and output it with setting to series.yml also set the Series beginning
   trakt_set_Series:
     disable_builtins: [seen]
-    priority: 2
+    priority: 3
     template: 
       - no_global
       - serien-global
@@ -76,7 +85,7 @@ tasks:
       api_key: '{{ secrets.trakt.api }}'
     # These are the default values.
     set:
-      quality: "<720p webrip+ xvid+"
+      quality: "<720p webrip+"
       specials: no
       tracking: no
     # overrides:
@@ -84,8 +93,7 @@ tasks:
       # I just need to rate a show on trakt.tv to switch between hi-res and default quality.
       - trakt_rating == "love":
           set:
-            #quality: 720p hdtv
-            quality: "720p webrip+ xvid+"
+            quality: 720p webrip+
     accept_all: yes
     # Creates the settings file for the series plugin - see https://github.com/tarzasai/.flexget/tree/master/plugins
     create_series_config:
@@ -94,20 +102,21 @@ tasks:
         - quality
         - specials
         - tracking
-      filename: '/home/saboti/.flexget/series.yml'
+      filename: '/home/flexget/.flexget-och/series.yml'
     set_series_begin: yes
 
   # Look up Custom Yahoo Pipes RSS Feed for Movies in the Moviequeue, add to Takt.tv Library and delete the Movie from the Custom List
   filme:
     template: filme-global
-    priority: 3
+    priority: 4
     regexp:
       reject:
         - S\d+E\d+: {from: title}
         - s\d+e\d+: {from: title}
     movie_queue: yes
     inputs:
-      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=314566c01e38cdcf1517cc7f3adcdd65&_render=rss # ALL Movies 720p
+      - rss: http://cinetopia.ws/feed/
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=314566c01e38cdcf1517cc7f3adcdd65&_render=rss # All Movies Pipe
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
@@ -118,23 +127,22 @@ tasks:
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
       list: Filme
-    pushover:
-      userkey: '{{ secrets.pushover.userkey }}'
-      apikey: '{{ secrets.pushover.apikey }}'
+    #pushover:
+    #  userkey: '{{ secrets.pushover.userkey }}'
+    #  apikey: '{{ secrets.pushover.apikey }}'
   
   # Look up Custom Yahoo Pipes RSS Feed for Series in the created series.yml file, add them to Trakt.tv Library
   serien:
     template: serien-global
-    priority: 4
+    priority: 5
     regexp:
       reject_excluding:
         - S\d+E\d+: {from: title}
         - s\d+e\d+: {from: title}
       reject:
         - \bsubbed\b: {from: title} # Filtert Subbed
-    include: '/home/saboti/.flexget/series.yml'
+    include: '/home/flexget/.flexget-och/series.yml'
     inputs:
-      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=a3bbd36ffce35009c75ebd974083eb77&_render=rss # Serienjunkies Filtered
       #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss # Serienjunkies All
       #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=1 # Serienjunkies All Page 1
       #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=2 # Serienjunkies All Page 2
@@ -142,24 +150,54 @@ tasks:
       #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=4 # Serienjunkies All Page 4
       #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=5 # Serienjunkies All Page 5
       #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=6 # Serienjunkies All Page 6
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=7 # Serienjunkies All Page 7
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=8 # Serienjunkies All Page 8
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=9 # Serienjunkies All Page 9
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=10 # Serienjunkies All Page 10
+      - rss: http://serienjunkies.org/xml/feeds/episoden.xml
+      - rss: http://cinetopia.ws/feed/
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
       list: library
-    pushover:
-      userkey: '{{ secrets.pushover.userkey }}'
-      apikey: '{{ secrets.pushover.apikey }}'
+    #pushover:
+    #  userkey: '{{ secrets.pushover.userkey }}'
+    #  apikey: '{{ secrets.pushover.apikey }}'
     
   # Search for queued Movies on hdarea with the help of a custom yahoo pipe
-  filmsuche:
-    priority: 5
+  #filmsuche_hdarea:
+  #  priority: 6
+  #  template: filme-global
+  #  discover:
+  #    what:
+  #      - emit_movie_queue: yes
+  #    from:
+  #      - search_rss: http://pipes.yahoo.com/pipes/pipe.run?_id=c78ffc88331f35b954f5499f39ce29e5&_render=rss&search={{search_term}} # HDAREA search
+  #  movie_queue: yes
+  #  trakt_add:
+  #    username: '{{ secrets.trakt.usr }}'
+  #    password: '{{ secrets.trakt.pwd }}'
+  #    api_key: '{{ secrets.trakt.api }}'
+  #    list: library
+  #  trakt_remove:
+  #    username: '{{ secrets.trakt.usr }}'
+  #    password: '{{ secrets.trakt.pwd }}'
+  #    api_key: '{{ secrets.trakt.api }}'
+  #    list: Filme
+  #  pushover:
+  #    userkey: '{{ secrets.pushover.userkey }}'
+  #    apikey: '{{ secrets.pushover.apikey }}'
+
+  filmsuche_cinetopia:
+    priority: 7
     template: filme-global
     discover:
       what:
         - emit_movie_queue: yes
       from:
-        - search_rss: http://pipes.yahoo.com/pipes/pipe.run?_id=c78ffc88331f35b954f5499f39ce29e5&_render=rss&search={{search_term}} # HDAREA search
+        - search_rss: http://pipes.yahoo.com/pipes/pipe.run?_id=639b4e099488eed7174dc3b8f9da2521&_render=rss&search={{search_term}} # Cinetopia.ws
+    movie_queue: yes
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
@@ -170,13 +208,14 @@ tasks:
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
       list: Filme
-    pushover:
-      userkey: '{{ secrets.pushover.userkey }}'
-      apikey: '{{ secrets.pushover.apikey }}'
+    #pushover:
+    #  userkey: '{{ secrets.pushover.userkey }}'
+    #  apikey: '{{ secrets.pushover.apikey }}'
+
 
   # Search for the Series from series.yml file on Serienjunkies with the help of a custom yahoo pipe
   seriensuche:
-    priority: 6
+    priority: 8
     template: serien-global
     regexp:
       reject_excluding:
@@ -184,7 +223,7 @@ tasks:
         - s\d+e\d+: {from: title}
       reject:
         - \bsubbed\b: {from: title} # Filtert Subbed
-    include: '/home/saboti/.flexget/series.yml'
+    include: '/home/flexget/.flexget-och/series.yml'
     discover:
       what:
         - emit_series: yes
@@ -195,11 +234,19 @@ tasks:
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
       list: library
-    pushover:
-      userkey: '{{ secrets.pushover.userkey }}'
-      apikey: '{{ secrets.pushover.apikey }}'
-  
-schedules:
-  - tasks: '*'
-    interval:
-      hours: 1
+    #pushover:
+    #  userkey: '{{ secrets.pushover.userkey }}'
+    #  apikey: '{{ secrets.pushover.apikey }}'
+
+  # IMDB Score größer 6.1 wird zu pyload hinzugefügt
+  #imdbscore:
+  #  priority: 9
+  #  template: filme-global
+  #  rss: http://pipes.yahoo.com/pipes/pipe.run?_id=314566c01e38cdcf1517cc7f3adcdd65&_render=rss
+  #  imdb:
+  #    min_score: 6.1
+
+schedules: no
+#  - tasks: '*'
+#    interval:
+#      minutes: 30
