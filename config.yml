@@ -1,8 +1,40 @@
 secrets: secrets.yml
 
 templates:
+
   global:
+    disable_plugin:
+      - email
     verify_ssl_certificates: no
+    regexp:
+      reject:
+        - \b(duo|tri|quadri|tetra|penta)logy\b: {from: title} # Filtert mehrteilige Serien, immer nur eine Episode
+        - \b3-?D\b: {from: title} # Hab kein 3D TV
+        - \btrailer\b: {from: title} # Filtert Trailer die evtl. wie Filme benannt sind
+        - \b(COMPLETE)\b: {from: title}
+    log_filter:
+      content_size:
+        - too big, rejecting
+        - too small, rejecting
+      inputs:
+        - torlock
+      move:
+        - left because it exceeds safety value
+        - does not exists (anymore)
+      requests.packages.urllib3.connectionpool:
+        - error(10060
+        - torlock
+      rss:
+        - I have saved the invalid content
+      series:
+        - releasing quality restriction
+        - appears to be an episode pack
+      torrentz:
+        - Too Many Requests
+      urlrewriter:
+        - URL rewritten to
+
+  pyload:
     pyload:
       api: http://localhost:8000/api
       queue: no
@@ -10,138 +42,24 @@ templates:
       multiple_hoster: yes
       username: '{{ secrets.pyload.usr }}'
       password: '{{ secrets.pyload.pwd }}'
-    email:
-      from: tobias.mundinger@gmail.com
-      to: be9877067dec4f47b5f27bd578a0ebf3@api.pushalot.com
-      smtp_host: smtp.gmail.com
-      smtp_port: 587
-      smtp_username: '{{ secrets.gmail.usr }}'
-      smtp_password: '{{ secrets.gmail.pwd }}'
-      smtp_tls: yes
-    regexp:
-      reject:
-        - \b(duo|tri|quadri|tetra|penta)logy\b: {from: title} # Filtert mehrteilige Serien, immer nur eine Episode
-        - \b3-?D\b: {from: title} # Hab kein 3D TV
-        - \btrailer\b: {from: title} # Filtert Trailer die evtl. wie Filme benannt sind
-        - \b(COMPLETE)\b: {from: title}
-    verify_ssl_certificates: no
 
-  serien-global:
-    plugin_priority:
-      trakt_lookup: 112
-    metainfo_series: yes
-    thetvdb_lookup: yes
-    trakt_lookup: yes
-    serienjunkies:
-      language: de
-      hoster: ul
+  pushalot:
+    #email:
+    #  from: tobias.mundinger@gmail.com
+    #  to: be9877067dec4f47b5f27bd578a0ebf3@api.pushalot.com
+    #  smtp_host: smtp.gmail.com
+    #  smtp_port: 587
+    #  smtp_username: '{{ secrets.gmail.usr }}'
+    #  smtp_password: '{{ secrets.gmail.pwd }}'
+    #  smtp_tls: yes
+    exec:
+      on_output:
+        for_accepted: "/home/flexget/.flexget-och/pushalot.sh Flexget found {{title}} - {{task}}"
 
-  filme-global:
-    quality:
-      - "<=720p webrip+"
-    imdb_lookup: yes
-    tmdb_lookup: yes
-    rottentomatoes_lookup: yes
-    proper_movies: yes
-
-tasks:
-  # Update our Movieque from Trakt.tv Custom List
-  trakt_watchlist:
-    disable_builtins: [seen]
-    template: no_global
-    priority: 1
-    trakt_list:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      custom: Filme
-    accept_all: yes
-    seen: local
-    queue_movies:
-      quality: any
-
-  # Get all Series from custom Trakt.tv List and output it with setting to series.yml also set the Series beginning
-  trakt_set_Series:
-    disable_builtins: [seen]
-    priority: 3
-    template: 
-      - no_global
-      - serien-global
-    plugin_priority:
-      set: -254
-      if: -255
-    inputs:
-      - trakt_emit:
-          username: '{{ secrets.trakt.usr }}'
-          password: '{{ secrets.trakt.pwd }}'
-          api_key: '{{ secrets.trakt.api }}'
-          position: next
-          context: collected
-          list: Serien
-    # This will set the trakt_rating field on entries - see https://github.com/tarzasai/.flexget/tree/master/plugins
-    trakt_ratings_lookup:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-    # These are the default values.
-    set:
-      quality: "<720p webrip+"
-      specials: no
-      tracking: no
-    # overrides:
-    if:
-      # I just need to rate a show on trakt.tv to switch between hi-res and default quality.
-      - trakt_rating == "love":
-          set:
-            quality: 720p webrip+
-    accept_all: yes
-    # Creates the settings file for the series plugin - see https://github.com/tarzasai/.flexget/tree/master/plugins
-    create_series_config:
-      set_fields:
-        - begin
-        - quality
-        - specials
-        - tracking
-      filename: '/home/flexget/.flexget-och/series.yml'
-    set_series_begin: yes
-
-  # Look up Custom Yahoo Pipes RSS Feed for Movies in the Moviequeue, add to Takt.tv Library and delete the Movie from the Custom List
-  filme:
-    template: filme-global
-    priority: 4
-    regexp:
-      reject:
-        - S\d+E\d+: {from: title}
-        - s\d+e\d+: {from: title}
-    movie_queue: yes
-    inputs:
-      - rss: http://cinetopia.ws/feed/
-      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=314566c01e38cdcf1517cc7f3adcdd65&_render=rss # All Movies Pipe
-    trakt_add:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      list: library
-    trakt_remove:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      list: Filme
-    #pushover:
-    #  userkey: '{{ secrets.pushover.userkey }}'
-    #  apikey: '{{ secrets.pushover.apikey }}'
-  
-  # Look up Custom Yahoo Pipes RSS Feed for Series in the created series.yml file, add them to Trakt.tv Library
-  serien:
-    template: serien-global
-    priority: 5
-    regexp:
-      reject_excluding:
-        - S\d+E\d+: {from: title}
-        - s\d+e\d+: {from: title}
-      reject:
-        - \bsubbed\b: {from: title} # Filtert Subbed
-    include: '/home/flexget/.flexget-och/series.yml'
+  # The sources for series
+  tvfeed:
+    disable_plugin:
+      - log_filter
     inputs:
       #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss # Serienjunkies All
       #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=1 # Serienjunkies All Page 1
@@ -154,75 +72,200 @@ tasks:
       #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=8 # Serienjunkies All Page 8
       #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=9 # Serienjunkies All Page 9
       #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=10 # Serienjunkies All Page 10
-      - rss: http://serienjunkies.org/xml/feeds/episoden.xml
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss # Serienjunkies filtered
       - rss: http://cinetopia.ws/feed/
-    trakt_add:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      list: library
-    #pushover:
-    #  userkey: '{{ secrets.pushover.userkey }}'
-    #  apikey: '{{ secrets.pushover.apikey }}'
-    
-  # Search for queued Movies on hdarea with the help of a custom yahoo pipe
-  #filmsuche_hdarea:
-  #  priority: 6
-  #  template: filme-global
-  #  discover:
-  #    what:
-  #      - emit_movie_queue: yes
-  #    from:
-  #      - search_rss: http://pipes.yahoo.com/pipes/pipe.run?_id=c78ffc88331f35b954f5499f39ce29e5&_render=rss&search={{search_term}} # HDAREA search
-  #  movie_queue: yes
-  #  trakt_add:
-  #    username: '{{ secrets.trakt.usr }}'
-  #    password: '{{ secrets.trakt.pwd }}'
-  #    api_key: '{{ secrets.trakt.api }}'
-  #    list: library
-  #  trakt_remove:
-  #    username: '{{ secrets.trakt.usr }}'
-  #    password: '{{ secrets.trakt.pwd }}'
-  #    api_key: '{{ secrets.trakt.api }}'
-  #    list: Filme
-  #  pushover:
-  #    userkey: '{{ secrets.pushover.userkey }}'
-  #    apikey: '{{ secrets.pushover.apikey }}'
 
-  filmsuche_cinetopia:
-    priority: 7
-    template: filme-global
-    discover:
-      what:
-        - emit_movie_queue: yes
-      from:
-        - search_rss: http://pipes.yahoo.com/pipes/pipe.run?_id=639b4e099488eed7174dc3b8f9da2521&_render=rss&search={{search_term}} # Cinetopia.ws
-    movie_queue: yes
-    trakt_add:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      list: library
-    trakt_remove:
-      username: '{{ secrets.trakt.usr }}'
-      password: '{{ secrets.trakt.pwd }}'
-      api_key: '{{ secrets.trakt.api }}'
-      list: Filme
-    #pushover:
-    #  userkey: '{{ secrets.pushover.userkey }}'
-    #  apikey: '{{ secrets.pushover.apikey }}'
+  # All the metainfo plugins used by tasks handling series.
+  tvinfo:
+    plugin_priority:
+      # manipulate must fix the titles before metainfo_series.
+      manipulate: 255
+      # trakt_lookup has to run before thetvdb_lookup, but now I can't remember why...
+      trakt_lookup: 112
+    metainfo_series: yes
+    thetvdb_lookup: yes
+    trakt_lookup: yes
+    serienjunkies:
+      language: de
+      hoster: ul
 
-
-  # Search for the Series from series.yml file on Serienjunkies with the help of a custom yahoo pipe
-  seriensuche:
-    priority: 8
-    template: serien-global
+  # Global filters for series.
+  tvfltr:
     regexp:
       reject_excluding:
         - S\d+E\d+: {from: title}
         - s\d+e\d+: {from: title}
       reject:
         - \bsubbed\b: {from: title} # Filtert Subbed
+    set:
+      allow_teasers: no
+      propers: 12 hours
+
+  # The sources for movies
+  mvfeed:
+    disable_plugin:
+      - log_filter
+    inputs:
+      - rss: http://cinetopia.ws/feed/
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=314566c01e38cdcf1517cc7f3adcdd65&_render=rss # All Movies Pipe
+
+  # All the metainfo plugins used by tasks handling movies.
+  mvinfo:
+    plugin_priority:
+      # I'm not sure of these priorities too, maybe because of https://github.com/Flexget/Flexget/pull/234 (fixed).
+      tmdb_lookup: 128
+      rottentomatoes_lookup: 127
+    imdb_lookup: yes
+    tmdb_lookup: yes
+    rottentomatoes_lookup: yes
+
+  # Global filters for movies.
+  mvfltr:
+    regexp:
+      reject:
+        - S\d+E\d+: {from: title}
+        - s\d+e\d+: {from: title}
+    movie_queue: yes
+    quality: "<=720p webrip+"
+
+  # No messages about no input/output/whatever.
+  nosumm:
+    disable_builtins:
+      - details
+
+  # Several tasks must not mess up with the seen table...
+  noseen:
+    disable_builtins:
+      - seen
+      - seen_info_hash
+    disable_plugin:
+      - seen_movies
+
+  # ...and/or with the backlog.
+  nofail:
+    disable_builtins:
+      - backlog
+      - remember_rejected
+      - retry_failed
+
+tasks:
+  # This task check out for ended/cancelled series, to remove them from the main trakt.tv list used to create the
+  # series config file.
+  chk_series:
+    priority: 1
+    interval: 1 days
+    template:
+      - noseen
+      - nofail
+    plugin_priority:
+      if: -250
+      manipulate: -251
+      trakt_remove: -252
+      trakt_add: -253
+    trakt_list:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      custom: tvall
+    # tvdb_status field is needed here, but tvinfo template has its own manipulate priority.
+    thetvdb_lookup: yes
+    if:
+      - tvdb_status == 'Ended': accept
+    # trakt_add and trakt_remove plugins need the series_name field, but trakt_list sets the title field only.
+    manipulate:
+      - series_name:
+          from: title
+    trakt_remove:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: tvall
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: tvended
+    exec:
+      on_output:
+        for_accepted: "/home/flexget/.flexget-och/pushalot.sh {{ tvdb_series_name|default(series_name) }}"
+
+  # This task creates a yaml file with series configuration using trakt.tv list content. 
+  # Some options (quality, specials) depends on the show and/or the network and/or my trakt.tv ratings and so.
+  set_series:
+    priority: 2
+    template: 
+      - noseen
+      - nosumm
+      - nofail
+    plugin_priority:
+      set: -254
+      if: -255
+    log_filter:
+      set_series_begin:
+        - First episode for
+    inputs:
+      - trakt_emit:
+          username: '{{ secrets.trakt.usr }}'
+          password: '{{ secrets.trakt.pwd }}'
+          api_key: '{{ secrets.trakt.api }}'
+          position: next
+          context: collected
+          list: tvall
+    # This will set the trakt_rating field on entries - see https://github.com/tarzasai/.flexget/tree/master/plugins
+    trakt_ratings_lookup:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+    # We need this for the trakt_series_network field.
+    trakt_lookup: yes
+    # These are the default values.
+    set:
+      quality: "<720p hdtv"
+      specials: no
+      tracking: no
+    # overrides:
+    if:
+      # I just need to rate a show on trakt.tv to switch between hi-res and default quality.
+      - trakt_rating == "love":
+          set:
+            quality: 720p hdtv
+    accept_all: yes
+    # Creates the settings file for the series plugin - see https://github.com/tarzasai/.flexget/tree/master/plugins
+    create_series_config:
+      set_fields:
+        - begin
+        - quality
+        - specials
+        - tracking
+      filename: '/home/flexget/.flexget-och/series.yml'
+    set_series_begin: yes
+
+  # This is the download task for series.
+  get_series:
+    priority: 3
+    template:
+      - tvinfo
+      - tvfeed
+      - tvfltr
+      - pyload
+      - pushalot
+    seen: local
+    include: '/home/flexget/.flexget-och/series.yml'
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: library
+
+  # Search for the Series from series.yml file on Serienjunkies with the help of a custom yahoo pipe
+  search_series:
+    priority: 4
+    template:
+      - tvinfo
+      - tvfeed
+      - tvfltr
+      - pyload
+      - pushalot
     include: '/home/flexget/.flexget-och/series.yml'
     discover:
       what:
@@ -234,19 +277,154 @@ tasks:
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
       list: library
-    #pushover:
-    #  userkey: '{{ secrets.pushover.userkey }}'
-    #  apikey: '{{ secrets.pushover.apikey }}'
 
+  # This one grabs the pilots.
+  premieres:
+    priority: 5
+    interval: 2 hours
+    template:
+      - tvfeed
+      - tvinfo
+      - tvfltr
+      - pyload
+    plugin_priority:
+      if: -252
+      # In this task it's ok to override the priority set by tvinfo.
+      manipulate: -253
+      trakt_add: -254
+    seen: local
+    require_field:
+      - tvdb_id
+      - tvdb_genres
+      - tvdb_first_air_date
+    regexp:
+      reject:
+        - animation: {from: tvdb_genres}
+        - children: {from: tvdb_genres}
+        - documentary: {from: tvdb_genres}
+        - family: {from: tvdb_genres}
+        - game show: {from: tvdb_genres}
+        - home and garden: {from: tvdb_genres}
+        - musical: {from: tvdb_genres}
+        - reality: {from: tvdb_genres}
+        - soap: {from: tvdb_genres}
+        - special interest: {from: tvdb_genres}
+        - talk show: {from: tvdb_genres}
+    series_premiere:
+      timeframe: 4 hours
+      quality: <720p hdtv+
+    if:
+      - tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=60): reject
+    # We need to remove season and episode numbers, otherwise trakt_add plugin will handle entries as episodes.
+    manipulate:
+      - series_season:
+          remove: yes
+      - series_episode:
+          remove: yes
+    # Add the show to the temporary list on trakt.tv so we'll get subsequent episodes too (in the end if I like it I 
+    # will move it in the main list).
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: tvevaluate
+    exec:
+      on_output:
+        for_accepted: "/home/flexget/.flexget-och/pushalot.sh {{ tvdb_series_name|default(series_name) }} ({{ tvdb_genres|join(', ')|lower() }}) - {% if trakt_series_url|default(False) %}{{ trakt_series_url }}{% else %}http://thetvdb.com/?tab=series&id={{ tvdb_id }}{% endif %}"
+
+  # Update our Movieque from Trakt.tv watchlist
+  watchlist:
+    priority: 6
+    seen: local
+    trakt_list:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      movies: watchlist
+    accept_all: yes
+    queue_movies:
+      quality: any
+
+  # This is the download task for movies.
+  get_movies:
+    priority: 7
+    template:
+      - mvinfo
+      - mvfeed
+      - mvfltr
+      - pyload
+      - pushalot
+    seen: local
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: library
+    trakt_remove:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: watchlist
+  
+  # This is the search task for movies
+  search_hdarea:
+    priority: 8
+    template:
+      - mvinfo
+      - mvfeed
+      - mvfltr
+      - pyload
+      - pushalot
+    discover:
+      what:
+        - emit_movie_queue: { year: no } 
+      from:
+        - search_rss: http://pipes.yahoo.com/pipes/pipe.run?_id=c78ffc88331f35b954f5499f39ce29e5&_render=rss&search={{search_term}} # HDAREA search
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: library
+    trakt_remove:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: watchlist
+  
+  search_cinetopia:
+    priority: 9
+    template:
+      - mvinfo
+      - mvfeed
+      - mvfltr
+      - pyload
+      - pushalot
+    discover:
+      what:
+        - emit_movie_queue: { year: no }
+      from:
+        - search_rss: http://pipes.yahoo.com/pipes/pipe.run?_id=639b4e099488eed7174dc3b8f9da2521&_render=rss&search={{search_term}} # Cinetopia.ws
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: library
+    trakt_remove:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: watchlist
+  
   # IMDB Score größer 6.1 wird zu pyload hinzugefügt
   #imdbscore:
-  #  priority: 9
+  #  priority: 10
   #  template: filme-global
   #  rss: http://pipes.yahoo.com/pipes/pipe.run?_id=314566c01e38cdcf1517cc7f3adcdd65&_render=rss
   #  imdb:
   #    min_score: 6.1
 
 schedules: no
+#schedules:
 #  - tasks: '*'
 #    interval:
 #      minutes: 30
