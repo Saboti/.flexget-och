@@ -13,26 +13,17 @@ templates:
         - \btrailer\b: {from: title} # Filtert Trailer die evtl. wie Filme benannt sind
         - \b(COMPLETE)\b: {from: title}
     log_filter:
-      content_size:
-        - too big, rejecting
-        - too small, rejecting
-      inputs:
-        - torlock
-      move:
-        - left because it exceeds safety value
-        - does not exists (anymore)
-      requests.packages.urllib3.connectionpool:
-        - error(10060
-        - torlock
       rss:
         - I have saved the invalid content
       series:
         - releasing quality restriction
         - appears to be an episode pack
-      torrentz:
-        - Too Many Requests
+      inputs:
+        - Input rss did not return anything
       urlrewriter:
         - URL rewritten to
+      task:
+        - REJECTED
 
   pyload:
     pyload:
@@ -44,35 +35,44 @@ templates:
       password: '{{ secrets.pyload.pwd }}'
 
   pushalot:
-    #email:
-    #  from: tobias.mundinger@gmail.com
-    #  to: be9877067dec4f47b5f27bd578a0ebf3@api.pushalot.com
-    #  smtp_host: smtp.gmail.com
-    #  smtp_port: 587
-    #  smtp_username: '{{ secrets.gmail.usr }}'
-    #  smtp_password: '{{ secrets.gmail.pwd }}'
-    #  smtp_tls: yes
     exec:
       on_output:
         for_accepted: "/home/flexget/.flexget-och/pushalot.sh Flexget found {{title}} - {{task}}"
+
+  # Serien aus der Custom Liste Serien importieren  
+  tvseries:
+    configure_series: 
+      from:
+        trakt_list:
+          username: '{{ secrets.trakt.usr }}'
+          password: '{{ secrets.trakt.pwd }}'
+          api_key: '{{ secrets.trakt.api }}'
+          custom: tvall
+      settings:
+        upgrade: yes
+        timeframe: 4 hours
+        target: <720p hdtv+
+        quality: 720p hdtv+
+        identified_by: ep
+        tracking: backfill
 
   # The sources for series
   tvfeed:
     disable_plugin:
       - log_filter
     inputs:
-      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss # Serienjunkies All
-      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=1 # Serienjunkies All Page 1
-      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=2 # Serienjunkies All Page 2
-      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=3 # Serienjunkies All Page 3
-      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=4 # Serienjunkies All Page 4
-      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=5 # Serienjunkies All Page 5
-      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=6 # Serienjunkies All Page 6
-      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=7 # Serienjunkies All Page 7
-      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=8 # Serienjunkies All Page 8
-      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=9 # Serienjunkies All Page 9
-      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss&page=10 # Serienjunkies All Page 10
-      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss # Serienjunkies filtered
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss # Serienjunkies All
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=1 # Serienjunkies All Page 1
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=2 # Serienjunkies All Page 2
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=3 # Serienjunkies All Page 3
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=4 # Serienjunkies All Page 4
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=5 # Serienjunkies All Page 5
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=6 # Serienjunkies All Page 6
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=7 # Serienjunkies All Page 7
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=8 # Serienjunkies All Page 8
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=9 # Serienjunkies All Page 9
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=10 # Serienjunkies All Page 10
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss # Serienjunkies filtered
       - rss: http://cinetopia.ws/feed/
 
   # All the metainfo plugins used by tasks handling series.
@@ -188,85 +188,50 @@ tasks:
     exec:
       on_output:
         for_accepted: "/home/flexget/.flexget-och/pushalot.sh {{ tvdb_series_name|default(series_name) }}"
-
-  # This task creates a yaml file with series configuration using trakt.tv list content. 
-  # Some options (quality, specials) depends on the show and/or the network and/or my trakt.tv ratings and so.
-  set_series:
+  
+  # Serienbeginn festlegen aus Trakt
+  set_series_begin:
     priority: 2
     template: 
       - noseen
       - nosumm
       - nofail
-    plugin_priority:
-      set: -254
-      if: -255
-    log_filter:
-      set_series_begin:
-        - First episode for
-    inputs:
-      - trakt_emit:
-          username: '{{ secrets.trakt.usr }}'
-          password: '{{ secrets.trakt.pwd }}'
-          api_key: '{{ secrets.trakt.api }}'
-          position: next
-          context: collected
-          list: tvall
-    # This will set the trakt_rating field on entries - see https://github.com/tarzasai/.flexget/tree/master/plugins
-    trakt_ratings_lookup:
+    trakt_emit:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
-    # We need this for the trakt_series_network field.
-    trakt_lookup: yes
-    # These are the default values.
-    set:
-      quality: "<720p hdtv"
-      specials: no
-      tracking: no
-    # overrides:
-    if:
-      # I just need to rate a show on trakt.tv to switch between hi-res and default quality.
-      - trakt_rating == "love":
-          set:
-            quality: 720p hdtv
+      context: collected
+      list: tvall
     accept_all: yes
-    # Creates the settings file for the series plugin - see https://github.com/tarzasai/.flexget/tree/master/plugins
-    create_series_config:
-      set_fields:
-        - begin
-        - quality
-        - specials
-        - tracking
-      filename: '/home/flexget/.flexget-och/series.yml'
     set_series_begin: yes
 
-  # This is the download task for series.
+  # Serien downloaden
   get_series:
     priority: 3
     template:
+      - tvseries
       - tvinfo
       - tvfeed
       - tvfltr
       - pyload
       - pushalot
     seen: local
-    include: '/home/flexget/.flexget-och/series.yml'
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
       api_key: '{{ secrets.trakt.api }}'
       list: library
 
-  # Search for the Series from series.yml file on Serienjunkies with the help of a custom yahoo pipe
+  # Seriensuche
   search_series:
     priority: 4
     template:
+      - tvseries
       - tvinfo
       - tvfeed
       - tvfltr
       - pyload
       - pushalot
-    include: '/home/flexget/.flexget-och/series.yml'
     discover:
       what:
         - emit_series: yes

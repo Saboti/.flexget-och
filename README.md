@@ -3,8 +3,6 @@
 Lose inspiriert von mehreren Personen.
 Ihr braucht folgende Plugins von [tarzasai](https://github.com/tarzasai/.flexget/tree/master/plugins)
 
-- create_series_config.py
-- trakt_ratings_lookup.py
 - log_filter.py
 
 Alle Privaten Informationen (username, passwords, api keys) sind in einer seperaten yaml Datei die direkt beim Start ausgelesen wird.
