@@ -11,7 +11,7 @@ Alle Privaten Informationen (username, passwords, api keys) sind in einer sepera
 
 - All Movies 720p - http://pipes.yahoo.com/pipes/pipe.info?_id=314566c01e38cdcf1517cc7f3adcdd65
 
-- Serienjunkies all - http://pipes.yahoo.com/pipes/pipe.info?_id=60c32e6edfa519fbaf911629c2c9e3b0
+- Serienjunkies all - http://pipes.yahoo.com/pipes/pipe.info?_id=e7152aa70261e46c72d330e29f2bf347
 
 - Serienjunkies filtered - http://pipes.yahoo.com/pipes/pipe.info?_id=60c32e6edfa519fbaf911629c2c9e3b0
 
