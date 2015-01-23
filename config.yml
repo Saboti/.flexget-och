@@ -1,0 +1,256 @@
+secrets: secrets.yml
+
+templates:
+
+  global:
+    regexp:
+      reject:
+        - \b(duo|tri|quadri|tetra|penta)logy\b: {from: title} # Filtert mehrteilige Serien, immer nur eine Episode
+        - \b3-?D\b: {from: title} # Hab kein 3D TV
+        - \btrailer\b: {from: title} # Filtert Trailer die evtl. wie Filme benannt sind
+        - \b(COMPLETE)\b: {from: title}
+        - English: {from: title}
+        - Englisch: {from: title}
+
+  pyload:
+    pyload:
+      api: http://localhost:8000/api
+      queue: no
+      parse_url: yes
+      multiple_hoster: yes
+      username: '{{ secrets.pyload.usr }}'
+      password: '{{ secrets.pyload.pwd }}'
+
+  push:
+    pushover:
+      userkey: '{{ secrets.pushover.usr }}'
+      apikey: '{{ secrets.pushover.api }}'
+
+  # Serien aus der Custom Liste Serien importieren  
+  tvseries:
+    configure_series: 
+      from:
+      #  trakt_list:
+      #    username: '{{ secrets.trakt.usr }}'
+      #    password: '{{ secrets.trakt.pwd }}'
+      #    list: Serien
+      #    type: shows
+        thetvdb_favorites:
+          account_id: 09AC45F0BF43643B
+          strip_dates: yes
+      settings:
+        upgrade: yes
+        quality: "<=720p hdtv+"
+        identified_by: ep
+        tracking: backfill
+        propers: 3 days
+
+  # The sources for series
+  tvfeed:
+    inputs:
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=1 # Serienjunkies All Page 1
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=2 # Serienjunkies All Page 2
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=3 # Serienjunkies All Page 3
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=4 # Serienjunkies All Page 4
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=5 # Serienjunkies All Page 5
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=6 # Serienjunkies All Page 6
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=7 # Serienjunkies All Page 7
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=8 # Serienjunkies All Page 8
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=9 # Serienjunkies All Page 9
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=10 # Serienjunkies All Page 10
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=016254dda064fa8d4ee357f69160dad9&_render=rss # Pipe All Serien - aktuell
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=016254dda064fa8d4ee357f69160dad9&_render=rss&page=1
+
+  # All the metainfo plugins used by tasks handling series.
+  tvinfo:
+    plugin_priority:
+      # manipulate must fix the titles before metainfo_series.
+      manipulate: 255
+      # trakt_lookup has to run before thetvdb_lookup, but now I can't remember why...
+      trakt_lookup: 112
+    metainfo_series: yes
+    thetvdb_lookup: yes
+    trakt_lookup: yes
+    serienjunkies:
+      language: de
+      hoster: ul
+
+  # Global filters for series.
+  tvfltr:
+    regexp:
+      reject_excluding:
+        - S\d+E\d+: {from: title}
+        - s\d+e\d+: {from: title}
+      reject:
+        - \bsubbed\b: {from: title} # Filtert Subbed
+
+  # The sources for movies
+  mvfeed:
+    inputs:
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=47596a96af8ebcca7991a0cf455b9f01&_render=rss # Pipe All Movies aktuell
+
+  # All the metainfo plugins used by tasks handling movies.
+  mvinfo:
+    plugin_priority:
+      # I'm not sure of these priorities too, maybe because of https://github.com/Flexget/Flexget/pull/234 (fixed).
+      tmdb_lookup: 128
+      rottentomatoes_lookup: 127
+    imdb_lookup: yes
+    tmdb_lookup: yes
+    rottentomatoes_lookup: yes
+
+  # Global filters for movies.
+  mvfltr:
+    regexp:
+      reject:
+        - S\d+E\d+: {from: title}
+        - s\d+e\d+: {from: title}
+    movie_queue: accept
+    quality: "<=720p webrip+"
+    proper_movies: yes
+    seen_movies: loose
+
+  # No messages about no input/output/whatever.
+  nosumm:
+    disable_builtins:
+      - details
+
+  # Several tasks must not mess up with the seen table...
+  noseen:
+    disable_builtins:
+      - seen
+      - seen_info_hash
+    disable_plugin:
+      - seen_movies
+
+  # ...and/or with the backlog.
+  nofail:
+    disable_builtins:
+      - backlog
+      - remember_rejected
+      - retry_failed
+
+tasks:
+  # Serienbeginn festlegen aus Trakt
+  set_series_begin:
+    priority: 1
+    template: 
+      - noseen
+      - nosumm
+      - nofail
+    trakt_emit:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      context: collected
+      list: Serien
+    accept_all: yes
+    set_series_begin: yes
+
+  # Serien downloaden
+  get_series:
+    priority: 2
+    template:
+      - tvseries
+      - tvinfo
+      - tvfeed
+      - tvfltr
+      - pyload
+      - push
+    seen: local
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      list: collection
+
+  # Seriensuche
+  search_series:
+    priority: 3
+    template:
+      - tvseries
+      - tvinfo
+      - tvfltr
+      - pyload
+      - push
+    discover:
+      what:
+        - emit_series: yes
+      from:
+        - search_rss: http://pipes.yahoo.com/pipes/pipe.run?SeasonEpisode={{search_term}}&Serie={{search_term}}&_id=9ac44b79ddd8b30ae42a1a9e31cb6e03&_render=rss # pipe search Serienjunkies.org
+        - search_rss: http://saboti.tk/tt-rss/public.php?op=rss&id=-4&q={{search_term}}&smode=this_feed&key=1l4jla54be673d73a70 # Saboti.tk tt-rss search
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      list: collection
+
+  # Update our Movieque from Trakt.tv watchlist
+  watchlist:
+    priority: 4
+    seen: local
+    trakt_list:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      list: watchlist
+      type: movies
+    accept_all: yes
+    movie_queue: add
+
+  # This is the download task for movies.
+  get_movies:
+    priority: 5
+    template:
+      - mvinfo
+      - mvfeed
+      - mvfltr
+      - pyload
+      - push
+    seen: local
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      list: collection
+    trakt_remove:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      list: watchlist
+  
+  # This is the search task for movies
+  search_movies:
+    priority: 6
+    template:
+      - mvinfo
+      - mvfltr
+      - pyload
+      - push
+    discover:
+      what:
+        - emit_movie_queue: { year: no } 
+      from:
+        - search_rss: http://pipes.yahoo.com/pipes/pipe.run?_id=c78ffc88331f35b954f5499f39ce29e5&_render=rss&search={{search_term}} # HDAREA search
+        - search_rss: http://pipes.yahoo.com/pipes/pipe.run?_id=639b4e099488eed7174dc3b8f9da2521&_render=rss&search={{search_term}} # Cinetopia.ws
+        - search_rss: http://saboti.tk/tt-rss/public.php?op=rss&id=-4&q={{search_term}}&smode=this_feed&key=1l4jla54be673d73a70 # saboti.tk tt-rss search
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      list: collection
+    trakt_remove:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      list: watchlist
+  
+  # IMDB Score xx wird zu pyload hinzugefügt
+  imdbscore:
+    priority: 7
+    template:
+      - mvinfo
+      - mvfeed
+      - mvfltr
+      - pyload
+      - push
+    imdb:
+      min_score: 6.5
+  
+schedules:
+  - tasks: '*'
+    interval:
+      minutes: 30
