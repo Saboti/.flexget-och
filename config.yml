@@ -3,14 +3,35 @@ secrets: secrets.yml
 templates:
 
   global:
+<<<<<<< HEAD
+=======
+    disable_plugin:
+      - email
+    verify_ssl_certificates: no
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
     regexp:
       reject:
         - \b(duo|tri|quadri|tetra|penta)logy\b: {from: title} # Filtert mehrteilige Serien, immer nur eine Episode
         - \b3-?D\b: {from: title} # Hab kein 3D TV
         - \btrailer\b: {from: title} # Filtert Trailer die evtl. wie Filme benannt sind
         - \b(COMPLETE)\b: {from: title}
+<<<<<<< HEAD
         - English: {from: title}
         - Englisch: {from: title}
+=======
+    log_filter:
+      rss:
+        - I have saved the invalid content
+      series:
+        - releasing quality restriction
+        - appears to be an episode pack
+      inputs:
+        - Input rss did not return anything
+      urlrewriter:
+        - URL rewritten to
+      task:
+        - REJECTED
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
 
   pyload:
     pyload:
@@ -21,15 +42,23 @@ templates:
       username: '{{ secrets.pyload.usr }}'
       password: '{{ secrets.pyload.pwd }}'
 
+<<<<<<< HEAD
   push:
     pushover:
       userkey: '{{ secrets.pushover.usr }}'
       apikey: '{{ secrets.pushover.api }}'
+=======
+  pushalot:
+    exec:
+      on_output:
+        for_accepted: "/home/flexget/.flexget-och/pushalot.sh Flexget found {{title}} - {{task}}"
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
 
   # Serien aus der Custom Liste Serien importieren  
   tvseries:
     configure_series: 
       from:
+<<<<<<< HEAD
       #  trakt_list:
       #    username: '{{ secrets.trakt.usr }}'
       #    password: '{{ secrets.trakt.pwd }}'
@@ -61,6 +90,39 @@ templates:
       #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=10 # Serienjunkies All Page 10
       - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=016254dda064fa8d4ee357f69160dad9&_render=rss # Pipe All Serien - aktuell
       - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=016254dda064fa8d4ee357f69160dad9&_render=rss&page=1
+=======
+        trakt_list:
+          username: '{{ secrets.trakt.usr }}'
+          password: '{{ secrets.trakt.pwd }}'
+          api_key: '{{ secrets.trakt.api }}'
+          custom: tvall
+      settings:
+        upgrade: yes
+        timeframe: 4 hours
+        target: <720p hdtv+
+        quality: 720p hdtv+
+        identified_by: ep
+        tracking: backfill
+
+  # The sources for series
+  tvfeed:
+    disable_plugin:
+      - log_filter
+    inputs:
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss # Serienjunkies All
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=1 # Serienjunkies All Page 1
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=2 # Serienjunkies All Page 2
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=3 # Serienjunkies All Page 3
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=4 # Serienjunkies All Page 4
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=5 # Serienjunkies All Page 5
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=6 # Serienjunkies All Page 6
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=7 # Serienjunkies All Page 7
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=8 # Serienjunkies All Page 8
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=9 # Serienjunkies All Page 9
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=e7152aa70261e46c72d330e29f2bf347&_render=rss&page=10 # Serienjunkies All Page 10
+      #- rss: http://pipes.yahoo.com/pipes/pipe.run?_id=60c32e6edfa519fbaf911629c2c9e3b0&_render=rss # Serienjunkies filtered
+      - rss: http://cinetopia.ws/feed/
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
 
   # All the metainfo plugins used by tasks handling series.
   tvinfo:
@@ -84,11 +146,25 @@ templates:
         - s\d+e\d+: {from: title}
       reject:
         - \bsubbed\b: {from: title} # Filtert Subbed
+<<<<<<< HEAD
 
   # The sources for movies
   mvfeed:
     inputs:
       - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=47596a96af8ebcca7991a0cf455b9f01&_render=rss # Pipe All Movies aktuell
+=======
+    set:
+      allow_teasers: no
+      propers: 12 hours
+
+  # The sources for movies
+  mvfeed:
+    disable_plugin:
+      - log_filter
+    inputs:
+      - rss: http://cinetopia.ws/feed/
+      - rss: http://pipes.yahoo.com/pipes/pipe.run?_id=314566c01e38cdcf1517cc7f3adcdd65&_render=rss # All Movies Pipe
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
 
   # All the metainfo plugins used by tasks handling movies.
   mvinfo:
@@ -106,10 +182,15 @@ templates:
       reject:
         - S\d+E\d+: {from: title}
         - s\d+e\d+: {from: title}
+<<<<<<< HEAD
     movie_queue: accept
     quality: "<=720p webrip+"
     proper_movies: yes
     seen_movies: loose
+=======
+    movie_queue: yes
+    quality: "<=720p webrip+"
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
 
   # No messages about no input/output/whatever.
   nosumm:
@@ -132,9 +213,55 @@ templates:
       - retry_failed
 
 tasks:
+<<<<<<< HEAD
   # Serienbeginn festlegen aus Trakt
   set_series_begin:
     priority: 1
+=======
+  # This task check out for ended/cancelled series, to remove them from the main trakt.tv list used to create the
+  # series config file.
+  chk_series:
+    priority: 1
+    interval: 1 days
+    template:
+      - noseen
+      - nofail
+    plugin_priority:
+      if: -250
+      manipulate: -251
+      trakt_remove: -252
+      trakt_add: -253
+    trakt_list:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      custom: tvall
+    # tvdb_status field is needed here, but tvinfo template has its own manipulate priority.
+    thetvdb_lookup: yes
+    if:
+      - tvdb_status == 'Ended': accept
+    # trakt_add and trakt_remove plugins need the series_name field, but trakt_list sets the title field only.
+    manipulate:
+      - series_name:
+          from: title
+    trakt_remove:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: tvall
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: tvended
+    exec:
+      on_output:
+        for_accepted: "/home/flexget/.flexget-och/pushalot.sh {{ tvdb_series_name|default(series_name) }}"
+  
+  # Serienbeginn festlegen aus Trakt
+  set_series_begin:
+    priority: 2
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
     template: 
       - noseen
       - nosumm
@@ -142,25 +269,40 @@ tasks:
     trakt_emit:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
+<<<<<<< HEAD
       context: collected
       list: Serien
+=======
+      api_key: '{{ secrets.trakt.api }}'
+      context: collected
+      list: tvall
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
     accept_all: yes
     set_series_begin: yes
 
   # Serien downloaden
   get_series:
+<<<<<<< HEAD
     priority: 2
+=======
+    priority: 3
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
     template:
       - tvseries
       - tvinfo
       - tvfeed
       - tvfltr
       - pyload
+<<<<<<< HEAD
       - push
+=======
+      - pushalot
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
     seen: local
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
+<<<<<<< HEAD
       list: collection
 
   # Seriensuche
@@ -172,10 +314,26 @@ tasks:
       - tvfltr
       - pyload
       - push
+=======
+      api_key: '{{ secrets.trakt.api }}'
+      list: library
+
+  # Seriensuche
+  search_series:
+    priority: 4
+    template:
+      - tvseries
+      - tvinfo
+      - tvfeed
+      - tvfltr
+      - pyload
+      - pushalot
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
     discover:
       what:
         - emit_series: yes
       from:
+<<<<<<< HEAD
         - search_rss: http://pipes.yahoo.com/pipes/pipe.run?SeasonEpisode={{search_term}}&Serie={{search_term}}&_id=9ac44b79ddd8b30ae42a1a9e31cb6e03&_render=rss # pipe search Serienjunkies.org
         - search_rss: http://saboti.tk/tt-rss/public.php?op=rss&id=-4&q={{search_term}}&smode=this_feed&key=1l4jla54be673d73a70 # Saboti.tk tt-rss search
     trakt_add:
@@ -186,10 +344,77 @@ tasks:
   # Update our Movieque from Trakt.tv watchlist
   watchlist:
     priority: 4
+=======
+        - search_rss: http://pipes.yahoo.com/pipes/pipe.run?SeasonEpisode={{search_term}}&Serie={{search_term}}&_id=9ac44b79ddd8b30ae42a1a9e31cb6e03&_render=rss # Search SJ - German
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: library
+
+  # This one grabs the pilots.
+  premieres:
+    priority: 5
+    interval: 2 hours
+    template:
+      - tvfeed
+      - tvinfo
+      - tvfltr
+      - pyload
+    plugin_priority:
+      if: -252
+      # In this task it's ok to override the priority set by tvinfo.
+      manipulate: -253
+      trakt_add: -254
+    seen: local
+    require_field:
+      - tvdb_id
+      - tvdb_genres
+      - tvdb_first_air_date
+    regexp:
+      reject:
+        - animation: {from: tvdb_genres}
+        - children: {from: tvdb_genres}
+        - documentary: {from: tvdb_genres}
+        - family: {from: tvdb_genres}
+        - game show: {from: tvdb_genres}
+        - home and garden: {from: tvdb_genres}
+        - musical: {from: tvdb_genres}
+        - reality: {from: tvdb_genres}
+        - soap: {from: tvdb_genres}
+        - special interest: {from: tvdb_genres}
+        - talk show: {from: tvdb_genres}
+    series_premiere:
+      timeframe: 4 hours
+      quality: <720p hdtv+
+    if:
+      - tvdb_first_air_date and tvdb_first_air_date < now - timedelta(days=60): reject
+    # We need to remove season and episode numbers, otherwise trakt_add plugin will handle entries as episodes.
+    manipulate:
+      - series_season:
+          remove: yes
+      - series_episode:
+          remove: yes
+    # Add the show to the temporary list on trakt.tv so we'll get subsequent episodes too (in the end if I like it I 
+    # will move it in the main list).
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: tvevaluate
+    exec:
+      on_output:
+        for_accepted: "/home/flexget/.flexget-och/pushalot.sh {{ tvdb_series_name|default(series_name) }} ({{ tvdb_genres|join(', ')|lower() }}) - {% if trakt_series_url|default(False) %}{{ trakt_series_url }}{% else %}http://thetvdb.com/?tab=series&id={{ tvdb_id }}{% endif %}"
+
+  # Update our Movieque from Trakt.tv watchlist
+  watchlist:
+    priority: 6
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
     seen: local
     trakt_list:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
+<<<<<<< HEAD
       list: watchlist
       type: movies
     accept_all: yes
@@ -198,16 +423,32 @@ tasks:
   # This is the download task for movies.
   get_movies:
     priority: 5
+=======
+      api_key: '{{ secrets.trakt.api }}'
+      movies: watchlist
+    accept_all: yes
+    queue_movies:
+      quality: any
+
+  # This is the download task for movies.
+  get_movies:
+    priority: 7
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
     template:
       - mvinfo
       - mvfeed
       - mvfltr
       - pyload
+<<<<<<< HEAD
       - push
+=======
+      - pushalot
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
     seen: local
     trakt_add:
       username: '{{ secrets.trakt.usr }}'
       password: '{{ secrets.trakt.pwd }}'
+<<<<<<< HEAD
       list: collection
     trakt_remove:
       username: '{{ secrets.trakt.usr }}'
@@ -222,11 +463,31 @@ tasks:
       - mvfltr
       - pyload
       - push
+=======
+      api_key: '{{ secrets.trakt.api }}'
+      list: library
+    trakt_remove:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: watchlist
+  
+  # This is the search task for movies
+  search_hdarea:
+    priority: 8
+    template:
+      - mvinfo
+      - mvfeed
+      - mvfltr
+      - pyload
+      - pushalot
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
     discover:
       what:
         - emit_movie_queue: { year: no } 
       from:
         - search_rss: http://pipes.yahoo.com/pipes/pipe.run?_id=c78ffc88331f35b954f5499f39ce29e5&_render=rss&search={{search_term}} # HDAREA search
+<<<<<<< HEAD
         - search_rss: http://pipes.yahoo.com/pipes/pipe.run?_id=639b4e099488eed7174dc3b8f9da2521&_render=rss&search={{search_term}} # Cinetopia.ws
         - search_rss: http://saboti.tk/tt-rss/public.php?op=rss&id=-4&q={{search_term}}&smode=this_feed&key=1l4jla54be673d73a70 # saboti.tk tt-rss search
     trakt_add:
@@ -241,11 +502,27 @@ tasks:
   # IMDB Score xx wird zu pyload hinzugefügt
   imdbscore:
     priority: 7
+=======
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: library
+    trakt_remove:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: watchlist
+  
+  search_cinetopia:
+    priority: 9
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
     template:
       - mvinfo
       - mvfeed
       - mvfltr
       - pyload
+<<<<<<< HEAD
       - push
     imdb:
       min_score: 6.5
@@ -254,3 +531,35 @@ schedules:
   - tasks: '*'
     interval:
       minutes: 30
+=======
+      - pushalot
+    discover:
+      what:
+        - emit_movie_queue: { year: no }
+      from:
+        - search_rss: http://pipes.yahoo.com/pipes/pipe.run?_id=639b4e099488eed7174dc3b8f9da2521&_render=rss&search={{search_term}} # Cinetopia.ws
+    trakt_add:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: library
+    trakt_remove:
+      username: '{{ secrets.trakt.usr }}'
+      password: '{{ secrets.trakt.pwd }}'
+      api_key: '{{ secrets.trakt.api }}'
+      list: watchlist
+  
+  # IMDB Score größer 6.1 wird zu pyload hinzugefügt
+  #imdbscore:
+  #  priority: 10
+  #  template: filme-global
+  #  rss: http://pipes.yahoo.com/pipes/pipe.run?_id=314566c01e38cdcf1517cc7f3adcdd65&_render=rss
+  #  imdb:
+  #    min_score: 6.1
+
+schedules: no
+#schedules:
+#  - tasks: '*'
+#    interval:
+#      minutes: 30
+>>>>>>> 94ceb4ffb77e127859d6c7330cbb53b5479a6a2b
