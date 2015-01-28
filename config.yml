@@ -12,6 +12,7 @@ templates:
         - \b(COMPLETE)\b: {from: title}
         - English: {from: title}
         - Englisch: {from: title}
+        - \bsubbed\b: {from: title} # Filtert Subbed
 
   pyload:
     pyload:
@@ -83,8 +84,6 @@ templates:
       reject_excluding:
         - S\d+E\d+: {from: title}
         - s\d+e\d+: {from: title}
-      reject:
-        - \bsubbed\b: {from: title} # Filtert Subbed
 
   # The sources for movies
   mvfeed:
@@ -114,20 +113,20 @@ templates:
 
   # No messages about no input/output/whatever.
   nosumm:
-    disable_builtins:
+    disable:
       - details
 
   # Several tasks must not mess up with the seen table...
   noseen:
-    disable_builtins:
+    disable:
       - seen
       - seen_info_hash
-    disable_plugin:
+    disable:
       - seen_movies
 
   # ...and/or with the backlog.
   nofail:
-    disable_builtins:
+    disable:
       - backlog
       - remember_rejected
       - retry_failed
@@ -240,16 +239,17 @@ tasks:
       list: watchlist
   
   # IMDB Score xx wird zu pyload hinzugefügt
-  imdbscore:
-    priority: 7
-    template:
-      - mvfeed
-      - mvinfo
-      - mvfltr
-      - pyload
-      - push
-    imdb:
-      min_score: 6.5
+#  imdbscore:
+#    priority: 7
+#    template:
+#      - mvfeed
+#      - mvinfo
+#      - mvfltr
+#      - pyload
+#      - push
+#    seen: local
+#    imdb:
+#      min_score: 6.5
 
 schedules:
   - tasks: '*'
